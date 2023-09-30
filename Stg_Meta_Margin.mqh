@@ -9,9 +9,10 @@
 
 // User input params.
 INPUT2_GROUP("Meta Margin strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_Neutral = STRAT_BANDS;  // Strategy for Margin at neutral range (40-60)
-INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_Peak = STRAT_FORCE;  // Strategy for Margin at peak range (0-20,80-100)
-INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_Trend = STRAT_AC;  // Strategy for Margin at trend range (20-40,60-80)
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_GT_80 = STRAT_DEMARKER;    // Strategy for free margin > 80%
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_GT_50 = STRAT_OSCILLATOR;  // Strategy for free margin (50%-80%)
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_LT_50 = STRAT_NONE;        // Strategy for free margin (20-50%)
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_LT_20 = STRAT_NONE;        // Strategy for free margin < 20%
 INPUT2_GROUP("Meta Margin strategy: common params");
 INPUT2 float Meta_Margin_LotSize = 0;                // Lot size
 INPUT2 int Meta_Margin_SignalOpenMethod = 0;         // Signal open method
@@ -49,6 +50,7 @@ struct Stg_Meta_Margin_Params_Defaults : StgParams {
 
 class Stg_Meta_Margin : public Strategy {
  protected:
+  Account account;
   DictStruct<long, Ref<Strategy>> strats;
 
  public:
@@ -70,9 +72,10 @@ class Stg_Meta_Margin : public Strategy {
    * Event on strategy's init.
    */
   void OnInit() {
-    StrategyAdd(Meta_Margin_Strategy_Margin_Neutral, 0);
-    StrategyAdd(Meta_Margin_Strategy_Margin_Peak, 1);
-    StrategyAdd(Meta_Margin_Strategy_Margin_Trend, 2);
+    StrategyAdd(Meta_Margin_Strategy_Margin_GT_80, 1);
+    StrategyAdd(Meta_Margin_Strategy_Margin_GT_50, 2);
+    StrategyAdd(Meta_Margin_Strategy_Margin_LT_50, 3);
+    StrategyAdd(Meta_Margin_Strategy_Margin_LT_20, 4);
   }
 
   /**
@@ -285,21 +288,24 @@ class Stg_Meta_Margin : public Strategy {
   bool SignalOpen(ENUM_ORDER_TYPE _cmd, int _method, float _level = 0.0f, int _shift = 0) {
     bool _result = true;
     // uint _ishift = _indi.GetShift();
+    // double _margin_free = account.GetMarginFreeInPct(); // GH-720: @fixme
+    double _margin_free = 100 / account.GetBalance() * account.GetMarginFree();
+    // double _margin_free =
     uint _ishift = _shift;
     Ref<Strategy> _strat_ref;
-    /*
-    IndicatorBase *_indi = GetIndicator();
-    if (_indi[_ishift][0] <= 20 || _indi[_ishift][0] >= 80) {
-      // Margin value is at peak range (0-20 or 80-100).
+    if (_margin_free >= 80) {
+      // Margin value is greater than 80% (between 80% and 100%).
       _strat_ref = strats.GetByKey(1);
-    } else if (_indi[_ishift][0] < 40 || _indi[_ishift][0] > 60) {
-      // Margin value is at trend range (20-40 or 60-80).
+    } else if (_margin_free >= 50) {
+      // Margin value is greater than 50% (between 50% and 80%).
       _strat_ref = strats.GetByKey(2);
-    } else if (_indi[_ishift][0] > 40 && _indi[_ishift][0] < 60) {
-      // Margin value is at neutral range (40-60).
-      _strat_ref = strats.GetByKey(0);
+    } else if (_margin_free <= 20) {
+      // Margin value is lesser than 20% (between 0% and 20%).
+      _strat_ref = strats.GetByKey(4);
+    } else if (_margin_free <= 50) {
+      // Margin value is lesser than 50% (between 20% and 50%).
+      _strat_ref = strats.GetByKey(3);
     }
-    */
     if (!_strat_ref.IsSet()) {
       // Returns false when strategy is not set.
       return false;
