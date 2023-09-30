@@ -7,8 +7,8 @@
 [![License][license-image]][license-link]
 [![Edit][gh-edit-badge]][gh-edit-link]
 
-RSI meta strategy to trade with different strategies
-based on the current daily RSI value.
+Margin meta strategy to trade with different strategies
+based on the current account's margin values.
 
 ## Dependencies
 
