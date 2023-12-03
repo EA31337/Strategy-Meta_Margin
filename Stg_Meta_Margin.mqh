@@ -9,10 +9,10 @@
 
 // User input params.
 INPUT2_GROUP("Meta Margin strategy: main params");
-INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_GT_80 = STRAT_DEMARKER;    // Strategy for free margin > 80%
-INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_GT_50 = STRAT_OSCILLATOR;  // Strategy for free margin (50%-80%)
-INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_LT_50 = STRAT_NONE;        // Strategy for free margin (20-50%)
-INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_LT_20 = STRAT_NONE;        // Strategy for free margin < 20%
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_GT_80 = STRAT_RSI;       // Strategy for free margin > 80%
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_GT_50 = STRAT_MA_TREND;  // Strategy for free margin (50%-80%)
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_LT_50 = STRAT_AMA;       // Strategy for free margin (20-50%)
+INPUT2 ENUM_STRATEGY Meta_Margin_Strategy_Margin_LT_20 = STRAT_NONE;      // Strategy for free margin < 20%
 INPUT3_GROUP("Meta Margin strategy: common params");
 INPUT3 float Meta_Margin_LotSize = 0;                // Lot size
 INPUT3 int Meta_Margin_SignalOpenMethod = 0;         // Signal open method
